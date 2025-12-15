@@ -1,104 +1,73 @@
-// ======= Supabase config =======
-const SUPABASE_URL = 'https://qqmbquelvcupzngbowvs.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbWJxdWVsdmN1cHpuZ2Jvd3ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3ODM3NzgsImV4cCI6MjA4MTM1OTc3OH0.SumVL_hNoXsxGaz711E2G6hq6vlxGXOLA2AhUqBdiTE';
+document.addEventListener("DOMContentLoaded", () => {
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SUPABASE_URL = "https://qqmbquelvcupzngbowvs.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbWJxdWVsdmN1cHpuZ2Jvd3ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3ODM3NzgsImV4cCI6MjA4MTM1OTc3OH0.SumVL_hNoXsxGaz711E2G6hq6vlxGXOLA2AhUqBdiTE";
 
-// ======= Tabs: Login / Register =======
-const tabLogin = document.getElementById('tab-login');
-const tabRegister = document.getElementById('tab-register');
-const loginForm = document.getElementById('login-form');
-const registerForm = document.getElementById('register-form');
-const authMessage = document.getElementById('auth-message');
+  window.supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
 
-tabLogin.addEventListener('click', () => {
-  tabLogin.classList.add('active');
-  tabRegister.classList.remove('active');
-  loginForm.style.display = 'block';
-  registerForm.style.display = 'none';
-  authMessage.textContent = '';
-});
+  const tabLogin = document.getElementById("tab-login");
+  const tabRegister = document.getElementById("tab-register");
+  const loginForm = document.getElementById("login-form");
+  const registerForm = document.getElementById("register-form");
+  const authMessage = document.getElementById("auth-message");
+  const logoutBtn = document.getElementById("logout-btn");
 
-tabRegister.addEventListener('click', () => {
-  tabRegister.classList.add('active');
-  tabLogin.classList.remove('active');
-  loginForm.style.display = 'none';
-  registerForm.style.display = 'block';
-  authMessage.textContent = '';
-});
+  tabLogin.onclick = () => {
+    tabLogin.classList.add("active");
+    tabRegister.classList.remove("active");
+    loginForm.style.display = "block";
+    registerForm.style.display = "none";
+    authMessage.textContent = "";
+  };
 
-// ======= Login / Register handlers =======
-document.getElementById('login-btn').addEventListener('click', async () => {
-  authMessage.textContent = '';
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
+  tabRegister.onclick = () => {
+    tabRegister.classList.add("active");
+    tabLogin.classList.remove("active");
+    loginForm.style.display = "none";
+    registerForm.style.display = "block";
+    authMessage.textContent = "";
+  };
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+  document.getElementById("login-btn").onclick = async () => {
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
 
-  if (error) {
-    authMessage.textContent = error.message;
-  } else {
-    authMessage.textContent = '';
-    await afterLogin();
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email, password
+    });
+
+    if (error) authMessage.textContent = error.message;
+    else afterLogin();
+  };
+
+  document.getElementById("register-btn").onclick = async () => {
+    const { error } = await supabaseClient.auth.signUp({
+      email: regEmail.value.trim(),
+      password: regPassword.value,
+      options: { data: { full_name: regName.value.trim() } }
+    });
+
+    authMessage.textContent = error
+      ? error.message
+      : "Account created. Check email if confirmation is enabled.";
+  };
+
+  async function afterLogin() {
+    document.getElementById("auth-card").style.display = "none";
+    document.getElementById("quiz-card").style.display = "block";
+    document.getElementById("score-card").style.display = "block";
+    logoutBtn.style.display = "inline-block";
+
+    if (window.setupQuiz) setupQuiz();
+    if (window.loadScores) loadScores();
   }
-});
 
-document.getElementById('register-btn').addEventListener('click', async () => {
-  authMessage.textContent = '';
-  const name = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
+  logoutBtn.onclick = async () => {
+    await supabaseClient.auth.signOut();
+    location.reload();
+  };
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: name }
-    }
-  });
-
-  if (error) {
-    authMessage.textContent = error.message;
-  } else {
-    authMessage.textContent = 'கணக்கு உருவாக்கப்பட்டது. Email confirmation தேவைப்பட்டால் உங்கள் inbox-ஐ பார்க்கவும்.';
-  }
-});
-
-// ======= Check current session & setup UI =======
-const authCard = document.getElementById('auth-card');
-const quizCard = document.getElementById('quiz-card');
-const scoreCard = document.getElementById('score-card');
-const logoutBtn = document.getElementById('logout-btn');
-const userInfo = document.getElementById('user-info');
-
-async function afterLogin() {
-  const { data } = await supabaseClient.auth.getUser();
-  if (data.user) {
-    userInfo.textContent = `வணக்கம், ${data.user.user_metadata?.full_name || data.user.email}`;
-    authCard.style.display = 'none';
-    quizCard.style.display = 'block';
-    scoreCard.style.display = 'block';
-    logoutBtn.style.display = 'inline-block';
-    if (window.setupQuiz) {
-      window.setupQuiz(); // from score.js
-    }
-    if (window.loadScores) {
-      window.loadScores(); // from score.js
-    }
-  }
-}
-
-logoutBtn.addEventListener('click', async () => {
-  await supabaseClient.auth.signOut();
-  location.reload();
-});
-
-// initial check
-supabaseClient.auth.getUser().then(({ data }) => {
-  if (data.user) {
-    afterLogin();
-  }
 });
