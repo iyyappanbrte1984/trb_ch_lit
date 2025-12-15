@@ -1,172 +1,77 @@
 <!DOCTYPE html>
 <html lang="ta">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>தமிழ் MCQ – Login & Quiz</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans Tamil", sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: system-ui, "Noto Sans Tamil", sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
       min-height: 100vh;
       margin: 0;
       padding: 20px;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
     }
     .app {
-      max-width: 1000px;
       width: 100%;
+      max-width: 1000px;
       background: #fff;
       border-radius: 10px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
       overflow: hidden;
     }
     header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
-      padding: 20px;
+      padding: 16px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
+      align-items: center;
     }
-    header h1 {
-      margin: 0;
-      font-size: 22px;
-    }
-    header small {
-      opacity: 0.9;
-      font-size: 13px;
-    }
-    .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .btn-primary {
-      background: #28a745;
-      color: #fff;
-    }
-    .btn-secondary {
-      background: #fff;
-      color: #333;
-    }
-    .content {
-      padding: 20px;
-    }
+    .content { padding: 20px; }
     .card {
-      border: 1px solid #e0e0e0;
+      background: #f8f9fa;
       border-radius: 8px;
       padding: 16px;
       margin-bottom: 20px;
-      background: #f8f9fa;
     }
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
+    .tabs { display: flex; gap: 10px; }
     .tab-btn {
       flex: 1;
       padding: 8px;
-      border-radius: 5px;
       border: none;
       cursor: pointer;
-      background: #e9ecef;
+      border-radius: 5px;
     }
-    .tab-btn.active {
-      background: #667eea;
-      color: white;
-    }
-    .field {
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .field label {
-      font-size: 13px;
-      color: #555;
-    }
+    .tab-btn.active { background: #667eea; color: white; }
+    .field { margin-bottom: 10px; }
     .field input {
+      width: 100%;
       padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 14px;
     }
-    .error {
-      color: #d32f2f;
-      font-size: 13px;
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
     }
-    .success {
-      color: #2e7d32;
-      font-size: 13px;
-    }
-    .question {
-      background: #fff;
-      border-radius: 6px;
-      border-left: 4px solid #764ba2;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-    .question-text {
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .option {
-      display: block;
-      padding: 4px 0;
-    }
-    .stats {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-    .stat-box {
-      flex: 1;
-      min-width: 150px;
-      background: #667eea;
-      color: white;
-      border-radius: 6px;
-      padding: 10px;
-      text-align: center;
-    }
-    .stat-number {
-      font-size: 24px;
-      font-weight: bold;
-    }
-    .stat-label {
-      font-size: 12px;
-      opacity: 0.9;
-    }
-    @media (max-width: 600px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-    }
+    .btn-primary { background: #28a745; color: white; }
+    .error { color: red; font-size: 13px; }
+    .success { color: green; font-size: 13px; }
   </style>
 </head>
+
 <body>
   <div class="app">
     <header>
-      <div>
-        <h1>தமிழ் சிறுவர் இலக்கியக் கலைஞர்கள் – MCQ</h1>
-        <small id="user-info">Login செய்யவும்</small>
-      </div>
-      <div>
-        <button id="logout-btn" class="btn btn-secondary" style="display:none;">Logout</button>
-      </div>
+      <h2>தமிழ் சிறுவர் இலக்கிய MCQ</h2>
+      <button id="logout-btn" class="btn" style="display:none;">Logout</button>
     </header>
 
     <div class="content">
-      <!-- Login/Register -->
+      <!-- AUTH -->
       <div id="auth-card" class="card">
         <div class="tabs">
           <button id="tab-login" class="tab-btn active">Login</button>
@@ -175,69 +80,48 @@
 
         <div id="login-form">
           <div class="field">
-            <label>Email</label>
-            <input id="login-email" type="email" placeholder="you@example.com">
+            <input id="login-email" type="email" placeholder="Email">
           </div>
           <div class="field">
-            <label>Password</label>
             <input id="login-password" type="password" placeholder="Password">
           </div>
-          <button class="btn btn-primary" id="login-btn">Login</button>
+          <button id="login-btn" class="btn btn-primary">Login</button>
         </div>
 
         <div id="register-form" style="display:none;">
           <div class="field">
-            <label>பெயர் (Full Name)</label>
-            <input id="reg-name" type="text" placeholder="உங்கள் பெயர்">
+            <input id="reg-name" type="text" placeholder="Full Name">
           </div>
           <div class="field">
-            <label>Email</label>
-            <input id="reg-email" type="email" placeholder="you@example.com">
+            <input id="reg-email" type="email" placeholder="Email">
           </div>
           <div class="field">
-            <label>Password</label>
             <input id="reg-password" type="password" placeholder="Password">
           </div>
-          <button class="btn btn-primary" id="register-btn">Register</button>
+          <button id="register-btn" class="btn btn-primary">Register</button>
         </div>
 
         <p id="auth-message" class="error"></p>
       </div>
 
-      <!-- Quiz -->
+      <!-- QUIZ -->
       <div id="quiz-card" class="card" style="display:none;">
-        <div class="stats">
-          <div class="stat-box">
-            <div class="stat-number" id="total-questions">0</div>
-            <div class="stat-label">மொத்த கேள்விகள்</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-number" id="score-display">0</div>
-            <div class="stat-label">தற்காலிக மதிப்பெண்</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-number" id="time-display">00:00</div>
-            <div class="stat-label">செலவிட்ட நேரம்</div>
-          </div>
-        </div>
-
         <div id="questions-container"></div>
-
-        <button class="btn btn-primary" id="submit-btn">Submit & Save</button>
+        <button id="submit-btn" class="btn btn-primary">Submit</button>
         <p id="submit-message" class="success"></p>
       </div>
 
-      <!-- Score history -->
+      <!-- SCORE -->
       <div id="score-card" class="card" style="display:none;">
-        <h3>முந்தைய முயற்சிகள்</h3>
+        <h3>முந்தைய மதிப்பெண்கள்</h3>
         <ul id="score-list"></ul>
       </div>
     </div>
   </div>
 
-  <!-- Supabase client -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
-  <script src="login.js"></script>
-  <script src="score.js"></script>
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="login.js" defer></script>
+  <script src="score.js" defer></script>
 </body>
 </html>
