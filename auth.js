@@ -1,29 +1,39 @@
-// Initialize Supabase (THIS WAS MISSING BEFORE)
+// Initialize Supabase ONCE
 const supabase = window.supabase.createClient(
   window.SUPABASE_URL,
   window.SUPABASE_ANON_KEY
 );
 
+// Elements
+const loginTab = document.getElementById("loginTab");
+const registerTab = document.getElementById("registerTab");
+
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
-const errorBox = document.getElementById("error");
 
-// Toggle UI
-function showLogin() {
+const errorBox = document.getElementById("errorBox");
+
+// Tab switching
+loginTab.onclick = () => {
+  loginTab.classList.add("active");
+  registerTab.classList.remove("active");
   loginForm.style.display = "block";
   registerForm.style.display = "none";
-  errorBox.style.display = "none";
-}
+  hideError();
+};
 
-function showRegister() {
-  loginForm.style.display = "none";
+registerTab.onclick = () => {
+  registerTab.classList.add("active");
+  loginTab.classList.remove("active");
   registerForm.style.display = "block";
-  errorBox.style.display = "none";
-}
+  loginForm.style.display = "none";
+  hideError();
+};
 
-// LOGIN
+// Login
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  hideError();
 
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
@@ -34,8 +44,7 @@ loginForm.addEventListener("submit", async (e) => {
   });
 
   if (error) {
-    errorBox.textContent = error.message;
-    errorBox.style.display = "block";
+    showError(error.message);
     return;
   }
 
@@ -43,9 +52,10 @@ loginForm.addEventListener("submit", async (e) => {
   // window.location.href = "quiz.html";
 });
 
-// REGISTER
+// Register
 registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  hideError();
 
   const email = document.getElementById("regEmail").value;
   const password = document.getElementById("regPassword").value;
@@ -56,11 +66,20 @@ registerForm.addEventListener("submit", async (e) => {
   });
 
   if (error) {
-    errorBox.textContent = error.message;
-    errorBox.style.display = "block";
+    showError(error.message);
     return;
   }
 
   alert("Registration successful. Please login.");
-  showLogin();
+  loginTab.click();
 });
+
+// Helpers
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.style.display = "block";
+}
+
+function hideError() {
+  errorBox.style.display = "none";
+}
