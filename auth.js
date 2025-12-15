@@ -1,4 +1,4 @@
-// Initialize Supabase ONCE
+// Use ONLY the values from index.html
 const supabase = window.supabase.createClient(
   window.SUPABASE_URL,
   window.SUPABASE_ANON_KEY
@@ -7,13 +7,11 @@ const supabase = window.supabase.createClient(
 // Elements
 const loginTab = document.getElementById("loginTab");
 const registerTab = document.getElementById("registerTab");
-
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
-
 const errorBox = document.getElementById("errorBox");
 
-// Tab switching
+// Tabs
 loginTab.onclick = () => {
   loginTab.classList.add("active");
   registerTab.classList.remove("active");
@@ -49,7 +47,6 @@ loginForm.addEventListener("submit", async (e) => {
   }
 
   alert("Login successful");
-  // window.location.href = "quiz.html";
 });
 
 // Register
