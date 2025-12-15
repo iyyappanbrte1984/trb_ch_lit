@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamil Literature Quiz</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --color-primary: #208D99;
+            --color-primary-dark: #1a746f;
+            --color-bg: #f5f5f0;
+            --color-surface: #ffffff;
+            --color-text: #1a1a1a;
+            --color-text-light: #666666;
+            --color-border: #e0e0d8;
+            --color-success: #22c55e;
+            --color-error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin: 0 0 10px 0;
+            color: var(--color-text);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--color-text-light);
+            margin: 0;
+        }
+
+        /* Quiz Screen */
+        .quiz-screen {
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .quiz-screen.active {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--color-border);
+            border-radius: 2px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--color-primary);
+            transition: width 0.3s ease;
+        }
+
+        .question-number {
+            font-size: 12px;
+            color: var(--color-text-light);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            padding: 12px 16px;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            background: var(--color-surface);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .option:hover {
+            border-color: var(--color-primary);
+            background: rgba(32, 141, 153, 0.05);
+        }
+
+        .option.selected {
+            border-color: var(--color-primary);
+            background: rgba(32, 141, 153, 0.1);
+        }
+
+        .option.correct {
+            border-color: var(--color-success);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .option.incorrect {
+            border-color: var(--color-error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--color-primary-dark);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0c8;
+        }
+
+        /* Auth Screen */
+        .auth-screen {
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .auth-screen.active {
+            display: block;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: var(--color-border);
+            color: var(--color-text);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(32, 141, 153, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-dark);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: var(--color-error);
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 6px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .user-header {
+            display: none;
+            background: var(--color-surface);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .user-header.show {
+            display: block;
+        }
+
+        .user-header p {
+            margin: 0 0 10px 0;
+            color: var(--color-text-light);
+        }
+
+        .user-header strong {
+            color: var(--color-primary);
+        }
+
+        .btn-logout {
+            background: var(--color-error);
+            color: white;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            display: none;
+        }
+
+        .start-screen.active {
+            display: block;
+        }
+
+        .start-screen h2 {
+            font-size: 24px;
+            margin: 0 0 15px 0;
+        }
+
+        .start-screen p {
+            color: var(--color-text-light);
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .stat-item {
+            background: rgba(32, 141, 153, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--color-text-light);
+            margin-top: 5px;
+        }
+
+        /* Results Screen */
+        .results-screen {
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            display: none;
+        }
+
+        .results-screen.active {
+            display: block;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .score-text {
+            font-size: 40px;
+            font-weight: 600;
+        }
+
+        .score-subtext {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .results-screen h2 {
+            font-size: 24px;
+            margin: 20px 0 10px 0;
+        }
+
+        .results-screen p {
+            color: var(--color-text-light);
+            margin: 5px 0;
+        }
+
+        .results-detail {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .result-item {
+            background: rgba(32, 141, 153, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .result-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: var(--color-text-light);
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--color-text-light);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .quiz-screen {
+                padding: 20px;
+            }
+            .question-text {
+                font-size: 16px;
+            }
+            .results-detail {
+                grid-template-columns: 1fr;
+            }
+            .controls {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>தமிழ் இலக்கிய வினாடி வினா</h1>
+            <p class="subtitle">Tamil Literature Quiz - 100 Questions</p>
+        </header>
+
+        <!-- Auth Screen -->
+        <div class="auth-screen active" id="authScreen">
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+                <button class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="At least 6 characters">
+                </div>
+                <button class="btn btn-primary" onclick="handleLogin()">Login</button>
+                <div id="loginError" class="error-message"></div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="registerName" placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="registerEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" placeholder="At least 6 characters">
+                </div>
+                <button class="btn btn-primary" onclick="handleRegister()">Register</button>
+                <div id="registerError" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- User Header (shown after login) -->
+        <div class="user-header" id="userHeader">
+            <p>Welcome, <strong id="userName">User</strong>!</p>
+            <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <h2>Welcome to Tamil Literature Quiz</h2>
+            <p>Test your knowledge about Tamil authors and children's literature. This quiz contains 100 questions about renowned Tamil writers including Ra. Ponrasan, Tiruchi Parathan, Tamizholai, and Paavanan.</p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">100</div>
+                    <div class="stat-label">Questions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Authors</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Attempts</div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="startQuiz()" style="margin-top: 20px; padding: 12px 30px; font-size: 16px;">
+                Start Quiz
+            </button>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="loading" id="loadingScreen" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading questions...</p>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="question-number" id="questionNum"></div>
+            <div class="question-text" id="questionText"></div>
+            
+            <div class="options" id="optionsContainer"></div>
+            
+            <div class="controls">
+                <button class="btn-secondary" onclick="previousQuestion()" id="prevBtn">Previous</button>
+                <button class="btn-primary" onclick="nextQuestion()" id="nextBtn">Next</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="score-circle">
+                <div>
+                    <div class="score-text" id="scoreValue">0</div>
+                    <div class="score-subtext">/ 100</div>
+                </div>
+            </div>
+            
+            <h2>Quiz Complete!</h2>
+            <p>Your final score</p>
+            
+            <div class="results-detail">
+                <div class="result-item">
+                    <div class="result-number" id="correctCount">0</div>
+                    <div class="result-label">Correct</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-number" id="incorrectCount">0</div>
+                    <div class="result-label">Incorrect</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-number" id="percentage">0%</div>
+                    <div class="result-label">Score</div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="restartQuiz()" style="margin-top: 20px; padding: 12px 30px; font-size: 16px;">
+                Retake Quiz
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qqmbquelvcupzngbowvs.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbWJxdWVsdmN1cHpuZ2Jvd3ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQyMzYwNTksImV4cCI6MTg5MjAwMjA1OX0.8L4kQ-L_KE3nJ2P9vQ1rZ8xY9mN0oPqRsT1uV2wX3yZ';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let questions = [];
+        let currentQuestion = 0;
+        let answers = [];
+        let currentUser = null;
+
+        // Check if user is already logged in
+        window.addEventListener('load', async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                currentUser = user;
+                showLoggedInState();
+                showScreen('startScreen');
+            }
+        });
+
+        // Auth Tab Switching
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.querySelectorAll('.tab-btn')[1].classList.remove('active');
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+                document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            }
+        }
+
+        // Handle Register
+        async function handleRegister() {
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const errorDiv = document.getElementById('registerError');
+
+            errorDiv.classList.remove('show');
+
+            if (!name) {
+                showError('Please enter your name', errorDiv);
+                return;
+            }
+
+            if (!email || !email.includes('@')) {
+                showError('Please enter a valid email', errorDiv);
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters', errorDiv);
+                return;
+            }
+
+            try {
+                const { data: { user }, error: signupError } = await supabase.auth.signUp({
+                    email,
+                    password
+                });
+
+                if (signupError) throw signupError;
+
+                // Create profile
+                await supabase.from('profiles').insert({
+                    id: user.id,
+                    full_name: name
+                });
+
+                showError('✓ Registration successful! Check your email to confirm.', errorDiv, true);
+                setTimeout(() => {
+                    switchAuthTab('login');
+                    document.getElementById('registerName').value = '';
+                    document.getElementById('registerEmail').value = '';
+                    document.getElementById('registerPassword').value = '';
+                    errorDiv.classList.remove('show');
+                }, 2000);
+
+            } catch (error) {
+                showError(error.message, errorDiv);
+            }
+        }
+
+        // Handle Login
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            errorDiv.classList.remove('show');
+
+            if (!email || !password) {
+                showError('Please enter email and password', errorDiv);
+                return;
+            }
+
+            try {
+                const { data: { user }, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
+                currentUser = user;
+                showLoggedInState();
+                showScreen('startScreen');
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+
+            } catch (error) {
+                showError(error.message, errorDiv);
+            }
+        }
+
+        // Handle Logout
+        async function handleLogout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            document.getElementById('authScreen').classList.add('active');
+            document.getElementById('userHeader').classList.remove('show');
+            document.getElementById('startScreen').classList.remove('active');
+            switchAuthTab('login');
+        }
+
+        // Show/Hide logged in state
+        function showLoggedInState() {
+            document.getElementById('authScreen').classList.remove('active');
+            document.getElementById('userHeader').classList.add('show');
+            document.getElementById('userName').textContent = currentUser.email.split('@')[0];
+        }
+
+        // Error handling
+        function showError(message, element, isSuccess = false) {
+            element.textContent = message;
+            element.classList.add('show');
+            if (isSuccess) {
+                element.style.color = 'var(--color-success)';
+                element.style.background = 'rgba(34, 197, 94, 0.1)';
+            } else {
+                element.style.color = 'var(--color-error)';
+                element.style.background = 'rgba(239, 68, 68, 0.1)';
+            }
+        }
+
+        // Quiz Functions
+        async function loadQuestions() {
+            try {
+                document.getElementById('loadingScreen').style.display = 'block';
+                
+                const { data, error } = await supabase
+                    .from('questions')
+                    .select('*')
+                    .order('id', { ascending: true })
+                    .limit(100);
+
+                if (error) throw error;
+
+                questions = data && data.length > 0 ? data : getDemoQuestions();
+                console.log(`Loaded ${questions.length} questions`);
+
+                answers = new Array(questions.length).fill(null);
+                document.getElementById('loadingScreen').style.display = 'none';
+                return true;
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                questions = getDemoQuestions();
+                answers = new Array(questions.length).fill(null);
+                document.getElementById('loadingScreen').style.display = 'none';
+                return true;
+            }
+        }
+
+        function getDemoQuestions() {
+            return [
+                {
+                    id: 1,
+                    question_text: 'ரா. பொன்ராசனின் உண்மைப் பெயர் என்ன?',
+                    option_a: 'ரா. கிருஷ்ணமூர்த்தி',
+                    option_b: 'ரா. கிருஷ்ணன்',
+                    option_c: 'கிருஷ்ணமோகன்',
+                    option_d: 'ரா. கிரிஜா',
+                    correct_option: 'b'
+                },
+                {
+                    id: 2,
+                    question_text: 'ரா. பொன்ராசன் பிறந்த வருடம் எது?',
+                    option_a: '1920',
+                    option_b: '1925',
+                    option_c: '1927',
+                    option_d: '1930',
+                    correct_option: 'c'
+                },
+                {
+                    id: 3,
+                    question_text: 'திருச்சி பரதனின் உண்மைப் பெயர் என்ன?',
+                    option_a: 'ர. தங்கவேலன்',
+                    option_b: 'வ. இராமசாமி',
+                    option_c: 'பி. வேணுகோபால்',
+                    option_d: 'ந. சுந்தரசாமி',
+                    correct_option: 'a'
+                }
+            ];
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('[id$="Screen"]').forEach(s => {
+                s.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        async function startQuiz() {
+            await loadQuestions();
+            answers = new Array(questions.length).fill(null);
+            currentQuestion = 0;
+            showScreen('quizScreen');
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const q = questions[currentQuestion];
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('questionNum').textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+            document.getElementById('questionText').textContent = q.question_text;
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            ['option_a', 'option_b', 'option_c', 'option_d'].forEach((key, index) => {
+                const letter = String.fromCharCode(97 + index);
+                const option = document.createElement('div');
+                option.className = 'option';
+                option.textContent = q[key];
+                
+                if (answers[currentQuestion] === letter) {
+                    option.classList.add('selected');
+                }
+
+                option.onclick = () => selectAnswer(letter);
+                container.appendChild(option);
+            });
+
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            document.getElementById('nextBtn').textContent = currentQuestion === questions.length - 1 ? 'Finish' : 'Next';
+        }
+
+        function selectAnswer(letter) {
+            answers[currentQuestion] = letter;
+            displayQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion === questions.length - 1) {
+                submitQuiz();
+            } else {
+                currentQuestion++;
+                displayQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                displayQuestion();
+            }
+        }
+
+        function submitQuiz() {
+            let correct = 0;
+            questions.forEach((q, i) => {
+                if (answers[i] === q.correct_option) {
+                    correct++;
+                }
+            });
+
+            const percentage = Math.round((correct / questions.length) * 100);
+            
+            document.getElementById('scoreValue').textContent = correct;
+            document.getElementById('correctCount').textContent = correct;
+            document.getElementById('incorrectCount').textContent = questions.length - correct;
+            document.getElementById('percentage').textContent = percentage + '%';
+
+            showScreen('resultsScreen');
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            answers = new Array(questions.length).fill(null);
+            showScreen('quizScreen');
+            displayQuestion();
+        }
+    </script>
+</body>
+</html>
