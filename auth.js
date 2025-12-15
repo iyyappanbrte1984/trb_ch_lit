@@ -1,3 +1,6 @@
+if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+  throw new Error("Supabase config missing");
+}
 // Use ONLY the values from index.html
 const supabaseClient = window.supabase.createClient(
   window.SUPABASE_URL,
