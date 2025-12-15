@@ -1,8 +1,11 @@
+// Ensure config exists
 if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+  console.error("Supabase config missing");
   throw new Error("Supabase config missing");
 }
-// Use ONLY the values from index.html
-const supabaseClient = window.supabase.createClient(
+
+// Create client ONCE (no name collision)
+const sb = window.supabase.createClient(
   window.SUPABASE_URL,
   window.SUPABASE_ANON_KEY
 );
@@ -39,15 +42,9 @@ loginForm.addEventListener("submit", async (e) => {
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
-  const { error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+  const { error } = await sb.auth.signInWithPassword({ email, password });
 
-  if (error) {
-    showError(error.message);
-    return;
-  }
+  if (error) return showError(error.message);
 
   alert("Login successful");
 });
@@ -60,15 +57,9 @@ registerForm.addEventListener("submit", async (e) => {
   const email = document.getElementById("regEmail").value;
   const password = document.getElementById("regPassword").value;
 
-  const { error } = await supabaseClient.auth.signUp({
-    email,
-    password
-  });
+  const { error } = await sb.auth.signUp({ email, password });
 
-  if (error) {
-    showError(error.message);
-    return;
-  }
+  if (error) return showError(error.message);
 
   alert("Registration successful. Please login.");
   loginTab.click();
